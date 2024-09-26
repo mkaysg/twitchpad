@@ -36,18 +36,18 @@ A simple Python script that leverages on twitchio and vgamepad. For Windows.
 Once that's done, you can clone the repository and install dependencies with an automated .bat script.
 
 1. Download `Setup_Twitchpad.bat` from Releases. Place it in a new folder. You may receive an anti-malware notification; you can always open the .bat file in Notepad and see what it does.
-2. Double-click `Setup_Twitchpad.bat`. The script will clone the Twitchpad repository and run the necessary installation of dependencies.
+2. Double-click `Setup_Twitchpad.bat`. The script will clone the Twitchpad repository, create a new virtual environment with Python 3.9 and run the necessary installation of dependencies.
 3. There will be a pop up of a Virtual Controller installer. This comes with the vgamepad library - click through it to get it installed.
 4. Once done, Notepad will open `config.ini` for you to enter your Twitch OAUTH token and Twitch Channel name in it.
-5. You can also change the scheme to `XBOX`, `PS` or `SWITCH`. This determines which chat inputs will Twitchpad respond to.
+5. You can also change the scheme to `XBOX`, `PS` or `SWITCH`. This determines which chat inputs Twitchpad will respond to.
 
 ## Starting it up!
 
 1. Make sure that you've filled in the necessary info in `config.ini`.
-2. Make sure there's no other controllers connected if you want Twitchpad to be the primary Player 1 gamepad.
+2. Make sure there's no other controllers connected if you want Twitchpad to be the Player 1 gamepad.
 3. Double-click `Start_Twitchpad.bat`. After a successful authentication to Twitch, it will immediately begin reading inputs from Chat, so be careful!
 4. Advisable to have the game in the foreground and focused i.e. you've clicked on it after starting Twitchpad.
-5. If you accidentally press on the Command Prompt window and see a static rectangle cursor, this means you've interrupted the script. You can press the title bar of the Command Prompt to let it continue.
+5. If you've accidentally pressed on the Command Prompt window and see a static rectangle cursor, this means you might have interrupted the script. You can press the title bar of the Command Prompt or press Enter to let it continue.
 6. The Command Prompt logs inputs from Twitch chat and will also display error messages, which can be handy for bug reports.
 7. If things get out of control, immediately close Twitchpad. Have fun!
 
