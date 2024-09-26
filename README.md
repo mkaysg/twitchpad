@@ -21,9 +21,6 @@ A simple Python script that leverages on twitchio and vgamepad. For Windows.
 ### Python 3.9 via Miniconda
 * Download and install Miniconda. Miniconda is a virtual environment manager for Python that allows you to have different virtual environments of differing Python versions. It manages dependencies that are compatible for a particular Python version.  https://docs.anaconda.com/miniconda/miniconda-install/
 * Follow the installation process and recommended steps to install for __one user only__. 
-* After installation, start miniconda3 from the Start menu. Easy way to do that is to press the Windows key and start typing `miniconda`. The Search results will show the Anaconda prompt. Click that.
-* Once the prompt is open, enter `conda create -y -n twitchpad_env python=3.9` to create a virtual Python 3.9 environment with the `twitchpad_env` name.
-* After its completed, you can close the window. Later on, the script will use that environment automatically.
 
 ### Twitch OAUTH Token
 * __DO NOT SHARE YOUR TOKEN WITH ANYONE__ as it provides access to your account. Treat it like a password.
