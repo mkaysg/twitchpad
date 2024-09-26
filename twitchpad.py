@@ -48,6 +48,23 @@ PS_BUTTON_VALUES = {
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER: "R1"                               
 }
 
+SWITCH_BUTTON_VALUES = {
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_A: "B",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_B: "A",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_X: "Y",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_Y: "X",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP: "UP",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN: "DOWN",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT: "LEFT",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT: "RIGHT",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_START: "+",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_BACK: "-",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB: "LEFTSTICKBUTTON",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB: "RIGHTSTICKBUTTON",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER: "SL",
+    vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER: "SR"                               
+}
+
 STICK_MAP = {
     'ls': "LEFTSTICK",
     'rs': "RIGHTSTICK"
@@ -67,8 +84,10 @@ DIRECTIONS_MAP = {
 TRIGGER_MAP = {
     'lt': "LT",
     'l2': "L2",
+    'zl': "ZL",
     'rt': "RT",
-    "r2": "R2"
+    "r2": "R2",
+    'zr': "ZR"
 }
 
 def is_int(num):
@@ -147,51 +166,55 @@ def move_stick_with_update(ctx, gamepad, joystick, x_value, y_value, duration):
         gamepad_update_and_sleep(gamepad, 0.1)
 
 def push_trig_with_update(ctx, gamepad, trigger, trig_value, duration):
-    print(f"Received command: {duration} {trigger} {trig_value} from {ctx.author.name}")     
+    print(f"Received command: {duration} {trigger} {trig_value} from {ctx.author.name}")    
+
+    left_trigger_names = ["LT", "L2", "ZL"]
+    right_trigger_names = ["RT", "R2", "ZR"] 
 
     if is_float(duration): 
-        if trigger == 'lt' or trigger == 'l2':
+        if trigger in left_trigger_names:
             gamepad.left_trigger_float(value_float=trig_value)
-        elif trigger == 'rt' or trigger == 'r2':
+        elif trigger in right_trigger_names:
             gamepad.right_trigger_float(value_float=trig_value)
 
         gamepad_update_and_sleep(gamepad, duration)
 
-        if trigger == 'lt' or trigger == 'l2':
+        if trigger in left_trigger_names:
             gamepad.left_trigger_float(value_float=0)
-        elif trigger == 'rt' or trigger == 'r2':
+        elif trigger in right_trigger_names:
             gamepad.right_trigger_float(value_float=0)
 
         gamepad_update_and_sleep(gamepad, 0.1)
 
     elif duration == "hold":
 
-        if trigger == 'lt' or trigger == 'l2':
+        if trigger in left_trigger_names:
             gamepad.left_trigger_float(value_float=trig_value)
-        elif trigger == 'rt' or trigger == 'r2':
+        elif trigger in right_trigger_names:
             gamepad.right_trigger_float(value_float=trig_value)
 
         gamepad_update_and_sleep(gamepad, 0.1)        
 
     elif duration == "stop":
 
-        if trigger == 'lt' or trigger == 'l2':
+        if trigger in left_trigger_names:
             gamepad.left_trigger_float(value_float=0)
-        elif trigger == 'rt' or trigger == 'r2':
+        elif trigger in right_trigger_names:
             gamepad.right_trigger_float(value_float=0)
 
         gamepad_update_and_sleep(gamepad, 0.1)
 
 def stop_last_input(ctx, gamepad, last_input):
 
-    print(f"Received command: Stop {last_input} from {ctx.author.name}") 
+    print(f"Received command: Stop the last input by {ctx.author.name} - stopping {last_input}") 
 
     input_item = ""
 
     parts = last_input.split()
     input_item = parts[2]
 
-    print(f"Input Item to stop: {input_item}")
+    left_trigger_names = ["LT", "L2", "ZL"]
+    right_trigger_names = ["RT", "R2", "ZR"]
 
     if parts[1] == "pressed":
         gamepad.release_button(get_button_to_key_mapping(input_item))
@@ -201,9 +224,9 @@ def stop_last_input(ctx, gamepad, last_input):
         elif input_item == "RIGHTSTICK":
             gamepad.right_joystick_float(x_value_float=0, y_value_float=0)
     elif parts[1] == "depressed":
-        if input_item == "LT" or input_item == "L2":
+        if input_item in left_trigger_names:
             gamepad.left_trigger_float(value_float=0)
-        elif input_item == "RT" or input_item == "R2":
+        elif input_item in right_trigger_names:
             gamepad.right_trigger_float(value_float=0)
 
     gamepad_update_and_sleep(gamepad, 0.1)
@@ -221,6 +244,8 @@ def map_button_to_text(button):
         button_text = XBOX_BUTTON_VALUES[button]
     elif SCHEME == "PS":
         button_text = PS_BUTTON_VALUES[button]
+    elif SCHEME == "SWITCH":
+        button_text = SWITCH_BUTTON_VALUES[button]
 
     return button_text
 
@@ -233,6 +258,11 @@ def get_button_to_key_mapping(button):
         for key, value in PS_BUTTON_VALUES.items():
             if button == value:
                 return key
+    elif SCHEME == "SWITCh":
+        for key, value in SWITCH_BUTTON_VALUES.items():
+            if button == value:
+                return key
+
 
 def map_joystick_to_text(joystick):
     return STICK_MAP[joystick]
@@ -310,6 +340,26 @@ class Bot(commands.Bot):
                 'r1': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
             }
 
+        elif SCHEME == "SWITCH":
+            self.command_map = {
+                'b': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
+                'a': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
+                'y': vgp.XUSB_BUTTON.XUSB_GAMEPAD_X,
+                'x': vgp.XUSB_BUTTON.XUSB_GAMEPAD_Y,                        
+                'up': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
+                'down': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
+                'left': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT,
+                'right': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT,
+                '+': vgp.XUSB_BUTTON.XUSB_GAMEPAD_START,
+                '-': vgp.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
+                'lsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
+                'rsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
+                'sl': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
+                'l': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
+                'sr': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,
+                'r': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
+            }
+
         self.joysticks_map = ['ls', 'rs']
         self.joysticks_direction_map = {
             'n': [0, 1.0],
@@ -326,22 +376,35 @@ class Bot(commands.Bot):
             self.triggers_map = ['lt', 'rt']
         elif SCHEME == "PS":
             self.triggers_map = ['l2', 'r2']
+        elif SCHEME == "SWITCH":
+            self.triggers_map = ['zl', 'zr']
 
         self.duration_map = {
             'tap': 0.2,
-            '2tap': 0.4,
-            '3tap': 0.6,
-            '4tap': 0.8,
+            'press': 0.4,
+            '2press': 0.6,
+            '3press': 0.8,
             'med': 1.0,
             '2med': 2.0,
             '3med': 4.0,
-            '4med': 8.0,
-            'long': 10.0,
-            '2long': 20.0,
-            '3long': 40.0,
-            '4long': 60.0,
+            'long': 6.0,
+            '2long': 8.0,
+            '3long': 10.0,
             'hold': "hold",
             "stop": "stop"
+        }
+
+        self.trigger_strength_map = {
+            '1': 0.1,
+            '2': 0.2,
+            '3': 0.3,
+            '4': 0.4,
+            '5': 0.5,
+            '6': 0.6,
+            '7': 0.7,
+            '8': 0.8,
+            '9': 0.9,
+            '10': 1.0
         }
 
         self.mod_commands_map = ['pause']
@@ -351,7 +414,7 @@ class Bot(commands.Bot):
         self.last_input = last_input
 
     async def event_ready(self):
-        print(f'Logged in as | {self.nick}')
+        print(f'Successful Login! Logged in as {self.nick} - Twitchpad is ready!')
 
         ctx = self.get_channel(TWITCH_CHANNEL)
         if ctx:
@@ -384,129 +447,120 @@ class Bot(commands.Bot):
             self.update_last_input(chat_output)
 
     async def translate_command_to_joystick(self, ctx, joystick, direction, duration):
-        if joystick in self.joysticks_map:
-            if direction in self.joysticks_direction_map:
-                x_value = self.joysticks_direction_map[direction][0]
-                y_value = self.joysticks_direction_map[direction][1]
+        if joystick in self.joysticks_map and direction in self.joysticks_direction_map:
 
-                action = "moved"
-                action = determine_action(action, duration, self.duration_map)
-                duration, duration_text = determine_duration(duration, self.duration_map)
+            x_value = self.joysticks_direction_map[direction][0]
+            y_value = self.joysticks_direction_map[direction][1]
 
-                chat_output = f"@{ctx.author.name} {action} {map_joystick_to_text(joystick)} {map_joystick_direction_to_text(direction)} {duration_text}!"
-                await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+            action = "moved"
+            action = determine_action(action, duration, self.duration_map)
+            duration, duration_text = determine_duration(duration, self.duration_map)
 
-                move_stick_with_update(ctx, gamepad, joystick, x_value, y_value, duration)
-                self.update_last_input(chat_output)
-            else:
-                await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a compass direction (n,ne,e,se,s,sw,w,nw)! ✨")
+            chat_output = f"@{ctx.author.name} {action} {map_joystick_to_text(joystick)} {map_joystick_direction_to_text(direction)} {duration_text}!"
+            await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+
+            move_stick_with_update(ctx, gamepad, joystick, x_value, y_value, duration)
+            self.update_last_input(chat_output)
+        else:
+            await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a compass direction (n,ne,e,se,s,sw,w,nw)! ✨")
 
     async def translate_command_to_trig(self, ctx, trigger, trig_value, duration):
-        if trigger in self.triggers_map:
-            if is_int(trig_value):
+        if trig_value is None:
+            trig_value = '10'
 
-                action = "depressed"
-                action = determine_action(action, duration, self.duration_map)
-                duration, duration_text = determine_duration(duration, self.duration_map)
+        if trigger in self.triggers_map and trig_value in self.trigger_strength_map:
+            
+            trig_value = self.trigger_strength_map[trig_value]
 
-                trig_value = limit_trig_value(int(trig_value))
+            action = "depressed"
+            action = determine_action(action, duration, self.duration_map)
+            duration, duration_text = determine_duration(duration, self.duration_map)
 
-                chat_output = f"@{ctx.author.name} {action} {map_trigger_to_text(trigger)} at {trig_value}% {duration_text}!"
-                await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")                
+            chat_output = f"@{ctx.author.name} {action} {map_trigger_to_text(trigger)} at {(trig_value*100)}% {duration_text}!"
+            await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")                
 
-                push_trig_with_update(ctx, gamepad, trigger, float(trig_value/100), duration)
-                self.update_last_input(chat_output)
-            else:
-                await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a valid number between 0 to 100 for trigger value! ✨")       
+            push_trig_with_update(ctx, gamepad, trigger, trig_value, duration)
+            self.update_last_input(chat_output)
+        else:
+            await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a valid number between 1 to 10 for trigger strength! ✨")       
 
-    @commands.command(name='press')
-    async def press_command(self, ctx, command: str, duration: Optional[str]):
-        if duration is None:
-            duration = 0.2
+    # @commands.command(name='press')
+    # async def press_command(self, ctx, button: str, duration: Optional[str]):
+    #     if duration is None:
+    #         duration = 0.2
 
-        await self.translate_command_to_button(ctx, command, duration)
+    #     await self.translate_command_to_button(ctx, button, duration)
+
+    # @commands.command(name='joy')
+    # async def joy_command(self, ctx, joystick: str, direction: str, duration: Optional[str]):
+    #     if duration is None:
+    #         duration = 0.2
+    #     await self.translate_command_to_joystick(ctx, joystick, direction, duration)
+
+    # @commands.command(name='trig')
+    # async def push_command(self, ctx, trigger: str, trig_value: str, duration: Optional[str]):
+    #     if duration is None:
+    #         duration = 0.2
+    #     await self.translate_command_to_trig(ctx, trigger, trig_value, duration)
+
+    async def input_branches(self, ctx, duration, pad_input, strengthOrDirection):
+        pad_input = pad_input.lower()
+
+        if pad_input in self.command_map:
+            await self.translate_command_to_button(ctx, pad_input, duration)
+        elif pad_input in self.joysticks_map:
+            strengthOrDirection = strengthOrDirection.lower()
+            await self.translate_command_to_joystick(ctx, pad_input, strengthOrDirection, duration)
+        elif pad_input in self.triggers_map:
+            await self.translate_command_to_trig(ctx, pad_input, strengthOrDirection, duration)
 
     @commands.command(name='tap')
-    async def tap_command(self, ctx, command: str): 
-        duration = "tap"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def tap_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]): 
+        await self.input_branches(ctx, "tap", pad_input, strengthOrDirection)
 
-    @commands.command(name='2tap')
-    async def tap2_command(self, ctx, command: str):
-        duration = "2tap"
-        await self.translate_command_to_button(ctx, command, duration)
+    @commands.command(name='press')
+    async def press_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "press", pad_input, strengthOrDirection)
 
-    @commands.command(name='3tap')
-    async def tap3_command(self, ctx, command: str):
-        duration = "3tap"
-        await self.translate_command_to_button(ctx, command, duration)
+    @commands.command(name='2press')
+    async def press2_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "2press", pad_input, strengthOrDirection)
 
-    @commands.command(name='4tap')
-    async def tap4_command(self, ctx, command: str):
-        duration = "4tap"
-        await self.translate_command_to_button(ctx, command, duration)
+    @commands.command(name='3press')
+    async def press3_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "3press", pad_input, strengthOrDirection)
 
     @commands.command(name='med')
-    async def med_command(self, ctx, command: str):
-        duration = "med"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def med_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "med", pad_input, strengthOrDirection)
 
     @commands.command(name='2med')
-    async def med2_command(self, ctx, command: str):
-        duration = "2med"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def med2_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "2med", pad_input, strengthOrDirection)
 
     @commands.command(name='3med')
-    async def med3_command(self, ctx, command: str):
-        duration = "3med"
-        await self.translate_command_to_button(ctx, command, duration)
-
-    @commands.command(name='4med')
-    async def med4_command(self, ctx, command: str):
-        duration = "4med"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def med3_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "3med", pad_input, strengthOrDirection)
 
     @commands.command(name='long')
-    async def long_command(self, ctx, command: str):
-        duration = "long"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def long_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "long", pad_input, strengthOrDirection)
 
     @commands.command(name='2long')
-    async def long2_command(self, ctx, command: str):
-        duration = "2long"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def long2_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "2long", pad_input, strengthOrDirection)
 
     @commands.command(name='3long')
-    async def long3_command(self, ctx, command: str):
-        duration = "3long"
-        await self.translate_command_to_button(ctx, command, duration)
-
-    @commands.command(name='4long')
-    async def long4_command(self, ctx, command: str):
-        duration = "4long"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def long3_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "3long", pad_input, strengthOrDirection)
 
     @commands.command(name='hold')
-    async def hold_command(self, ctx, command: str):
-        duration = "hold"
-        await self.translate_command_to_button(ctx, command, duration)
+    async def hold_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "hold", pad_input, strengthOrDirection)
 
     @commands.command(name='stop')
-    async def stop_command(self, ctx, command: str):
-        duration = "stop"
-        await self.translate_command_to_button(ctx, command, duration)
-
-    @commands.command(name='joy')
-    async def joy_command(self, ctx, joystick: str, direction: str, duration: Optional[str]):
-        if duration is None:
-            duration = 0.2
-        await self.translate_command_to_joystick(ctx, joystick, direction, duration)
-
-    @commands.command(name='trig')
-    async def push_command(self, ctx, trigger: str, trig_value: str, duration: Optional[str]):
-        if duration is None:
-            duration = 0.2
-        await self.translate_command_to_trig(ctx, trigger, trig_value, duration)
+    async def stop_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "stop", pad_input, strengthOrDirection)
 
     @commands.command(name='last')
     async def last_command(self, ctx):
@@ -516,16 +570,16 @@ class Bot(commands.Bot):
     async def print_twitchpad(self, ctx):
         await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} - view commands here: xxx ✨")
 
-    @commands.command(name='astop')
+    @commands.command(name='reset')
     async def stop_all_command(self, ctx):
-        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} has stopped all inputs! ✨")
+        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} has stopped and reset all inputs! ✨")
         stop_all_inputs(ctx, gamepad)
 
     @commands.command(name='lstop')
     async def stop_last_command(self, ctx):
-        chat_output = f"@{ctx.author.name} stopped the last command - {self.last_input}!"
+        chat_output = f"@{ctx.author.name} resetted the input from the last command - {self.last_input}!"
         await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨") 
-        stop_last_input(ctx, gamepad, self.last_input)      
+        stop_last_input(ctx, gamepad, self.last_input)
 
     # async def event_command_error(self, ctx, error):
     #     # Check if the error is related to an undefined command
