@@ -7,14 +7,14 @@ from typing import Optional, Union
 
 TWITCH_CHANNEL = ''
 TWITCH_TOKEN = ''
-SCHEME = 'XBOX'
+SCHEME = 'XBX'
 
 # Initialize the virtual gamepad
 gamepad = vgp.VX360Gamepad()
 
 # Inialize text mapping
 
-XBOX_BUTTON_VALUES = {
+XBX_BUTTON_VALUES = {
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_A: "A",
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_B: "B",
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_X: "X",
@@ -48,7 +48,7 @@ PS_BUTTON_VALUES = {
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER: "R1"                               
 }
 
-SWITCH_BUTTON_VALUES = {
+NINT_BUTTON_VALUES = {
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_A: "B",
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_B: "A",
     vgp.XUSB_BUTTON.XUSB_GAMEPAD_X: "Y",
@@ -240,26 +240,26 @@ def stop_all_inputs(ctx, gamepad):
 def map_button_to_text(button):
     button_text = ""
 
-    if SCHEME == "XBOX":
-        button_text = XBOX_BUTTON_VALUES[button]
+    if SCHEME == "XBX":
+        button_text = XBX_BUTTON_VALUES[button]
     elif SCHEME == "PS":
         button_text = PS_BUTTON_VALUES[button]
-    elif SCHEME == "SWITCH":
-        button_text = SWITCH_BUTTON_VALUES[button]
+    elif SCHEME == "NINT":
+        button_text = NINT_BUTTON_VALUES[button]
 
     return button_text
 
 def get_button_to_key_mapping(button):
-    if SCHEME == "XBOX":
-        for key, value in XBOX_BUTTON_VALUES.items():
+    if SCHEME == "XBX":
+        for key, value in XBX_BUTTON_VALUES.items():
             if button == value:
                 return key
     elif SCHEME == "PS":
         for key, value in PS_BUTTON_VALUES.items():
             if button == value:
                 return key
-    elif SCHEME == "SWITCh":
-        for key, value in SWITCH_BUTTON_VALUES.items():
+    elif SCHEME == "NINT":
+        for key, value in NINT_BUTTON_VALUES.items():
             if button == value:
                 return key
 
@@ -304,7 +304,7 @@ class Bot(commands.Bot):
         super().__init__(token=TWITCH_TOKEN, prefix='!', initial_channels=[TWITCH_CHANNEL])
 
         # Map commands to buttons
-        if SCHEME == "XBOX":
+        if SCHEME == "XBX":
             self.command_map = {
                 'a': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
                 'b': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -340,7 +340,7 @@ class Bot(commands.Bot):
                 'r1': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
             }
 
-        elif SCHEME == "SWITCH":
+        elif SCHEME == "NINT":
             self.command_map = {
                 'b': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
                 'a': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -372,11 +372,11 @@ class Bot(commands.Bot):
             'nw': [-0.7, 0.7]            
         }
 
-        if SCHEME == "XBOX":
+        if SCHEME == "XBX":
             self.triggers_map = ['lt', 'rt']
         elif SCHEME == "PS":
             self.triggers_map = ['l2', 'r2']
-        elif SCHEME == "SWITCH":
+        elif SCHEME == "NINT":
             self.triggers_map = ['zl', 'zr']
 
         self.duration_map = {
@@ -483,25 +483,6 @@ class Bot(commands.Bot):
             self.update_last_input(chat_output)
         else:
             await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a valid number between 1 to 10 for trigger strength! ✨")       
-
-    # @commands.command(name='press')
-    # async def press_command(self, ctx, button: str, duration: Optional[str]):
-    #     if duration is None:
-    #         duration = 0.2
-
-    #     await self.translate_command_to_button(ctx, button, duration)
-
-    # @commands.command(name='joy')
-    # async def joy_command(self, ctx, joystick: str, direction: str, duration: Optional[str]):
-    #     if duration is None:
-    #         duration = 0.2
-    #     await self.translate_command_to_joystick(ctx, joystick, direction, duration)
-
-    # @commands.command(name='trig')
-    # async def push_command(self, ctx, trigger: str, trig_value: str, duration: Optional[str]):
-    #     if duration is None:
-    #         duration = 0.2
-    #     await self.translate_command_to_trig(ctx, trigger, trig_value, duration)
 
     async def input_branches(self, ctx, duration, pad_input, strengthOrDirection):
         pad_input = pad_input.lower()
