@@ -4,6 +4,8 @@ Play any game that supports Xbox Controller / Gamepad input via Twitch Chat!
 
 A simple Python script that leverages on twitchio and vgamepad. For Windows.
 
+![Twitchpad Preview, showing a VTuber playing a racing game with Chat's inputs](https://imgur.com/a/4Dtkr97)
+
 ## Limitations
 * Only games that support input from Xbox Controllers / Gamepads are supported.
 * Guide button is not mapped - main concern is chat opening up your Steam Big Picture / Steam Overlay. But I'm aware some emulators use the guide button as a menu to save state, etc. I'd need more opinions on this.
