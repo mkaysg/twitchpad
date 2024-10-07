@@ -4,7 +4,7 @@ Play any game that supports Xbox Controller / Gamepad input via Twitch Chat!
 
 A simple Python script that leverages on twitchio and vgamepad. For Windows.
 
-![Twitchpad Preview](https://imgur.com/a/4Dtkr97 "Twitchpad Preview")
+![Twitchpad Preview](https://i.imgur.com/Yiatlum.png "Twitchpad Preview")
 
 ## Limitations
 * Only games that support input from Xbox Controllers / Gamepads are supported.
