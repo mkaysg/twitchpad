@@ -53,10 +53,10 @@ A simple Python script that leverages on twitchio and vgamepad. For Windows.
 * If you have a Github account, you may track the project via the top-right button `Watch > check the Releases box`
 * Currently there's no method for auto-updating
 
-## Wiki
-Head over to the Wiki to view available inputs.
+## Reference Guide
+Read the [GUIDE.md](https://github.com/mkaysg/twitchpad/blob/main/GUIDE.md) file for reference.
 
-You can also run `!twitchpad` in Twitch chat when the script is running to get a link to the wiki!
+You can also run `!twitchpad` in Twitch chat when the script is running to get a link to the reference!
 
 ## If you are cloning the repo...
 

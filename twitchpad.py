@@ -549,9 +549,9 @@ class Bot(commands.Bot):
 
     @commands.command(name='twitchpad')
     async def print_twitchpad(self, ctx):
-        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} - view commands here: xxx ✨")
+        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} - view commands here: https://github.com/mkaysg/twitchpad/blob/main/GUIDE.md ✨")
 
-    @commands.command(name='reset')
+    @commands.command(name='lreset')
     async def stop_all_command(self, ctx):
         await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} has stopped and reset all inputs! ✨")
         stop_all_inputs(ctx, gamepad)

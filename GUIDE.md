@@ -105,5 +105,5 @@ _Note: The stop command cannot interrupt ongoing actions; it will simply reset t
 |-----------|----------|
 |twitchpad  |prints URL to this list of inputs|
 |last       |prints last input in chat|
-|lstop      |resets the last input to default; not for interruption|
+|lreset     |resets the last input to default; not for interruption|
 |reset      |resets all inputs to default|
