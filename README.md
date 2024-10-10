@@ -69,3 +69,4 @@ This project was developed in a virtual environment using Python 3.9.
 * [twitchio](https://github.com/PythonistaGuild/TwitchIO)
 * [vgamepad](https://github.com/yannbouteiller/vgamepad)
 * [ViGEmBus](https://github.com/nefarius/ViGEmBus)
+* My apologies to ImNotKillian who already has a project named [TwitchPad](https://github.com/ImNotKilian/Twitchpad) that takes chat and converts it to Keyboard input. My initial search didn't turn up their project so I thought the name was available, until I used the search bar in Github. 😓 If you wish for me to change the project name, let me know!
