@@ -10,7 +10,6 @@ The syntax for Twitchpad follows the general structure of
 * ___joystick direction / trigger strength___
     * ___joystick direction___ - compass direction (from n,ne,e...nw) when joysticks are set as input
     * ___trigger strength___ - number from 0 to 10 indicating trigger strength when triggers are set as input
-    * 
 
 ## Examples
 __Using the `XBX` scheme:__
