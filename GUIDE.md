@@ -26,6 +26,8 @@ __Using the `XBX` scheme:__
 
 `!stop a ` - resets the A button to default
 
+__Tap Shortcuts__ - `!a` to tap a or `!up` to tap up
+
 _Note: The stop command cannot interrupt ongoing actions; it will simply reset the button to default, which is to stop engaging that input._
 
 ## Reference List
@@ -60,8 +62,10 @@ _Note: The stop command cannot interrupt ongoing actions; it will simply reset t
 |right|right|right|Right Directional Button|
 |start|start|+|Right Menu Button
 |back|select|-|Left Menu Button
-|lsbtn|l3|lsbtn|Left Joystick Press-In Button|
-|rsbtn|r3|rsbtn|Right Joystick Press-In Button|
+|lsb|l3|lsb|Left Joystick Press-In Button|
+|rsb|r3|rsb|Right Joystick Press-In Button|
+|lb|l1|l|Left Shoulder|
+|rb|r1|r|Right Shoulder|
 |ls|ls|ls|Left Joystick|
 |rs|rs|rs|Right Joystick|
 |lt|l2|zl|Left Trigger|
@@ -97,6 +101,17 @@ _Note: The stop command cannot interrupt ongoing actions; it will simply reset t
 |8      |80%   |
 |9      |90%  |
 |10     |100%|
+
+### Shortcuts
+
+| command   | description |
+|-----------|----------|
+|up         |same as !tap up|
+|right      |same as !tap right|
+|down       |same as !tap down|
+|left       |same as !tap left|
+
+You can also do tap shortcuts for every face button for the relevant scheme e.g. in XBX scheme, you could  do `!a` to press tap a.
 
 ### Other useful commands
 

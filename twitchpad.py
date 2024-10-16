@@ -316,10 +316,10 @@ class Bot(commands.Bot):
                 'right': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT,
                 'start': vgp.XUSB_BUTTON.XUSB_GAMEPAD_START,
                 'back': vgp.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
-                'lsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
-                'rsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
-                'lsh': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
-                'rsh': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
+                'lsb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
+                'rsb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
+                'lb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
+                'rb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
             }
 
         elif SCHEME == "PS":
@@ -352,8 +352,8 @@ class Bot(commands.Bot):
                 'right': vgp.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT,
                 '+': vgp.XUSB_BUTTON.XUSB_GAMEPAD_START,
                 '-': vgp.XUSB_BUTTON.XUSB_GAMEPAD_BACK,
-                'lsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
-                'rsbtn': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
+                'lsb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
+                'rsb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
                 'sl': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
                 'l': vgp.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_SHOULDER,
                 'sr': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER,
@@ -542,6 +542,143 @@ class Bot(commands.Bot):
     @commands.command(name='stop')
     async def stop_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
         await self.input_branches(ctx, "stop", pad_input, strengthOrDirection)
+
+    ### DIRECTIONAL SHORTCUTS
+
+    @commands.command(name='up')
+    async def up_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "up", strengthOrDirection)
+
+    @commands.command(name='down')
+    async def down_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "down", strengthOrDirection)
+
+    @commands.command(name='left')
+    async def left_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "left", strengthOrDirection)
+
+    @commands.command(name='right')
+    async def right_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "right", strengthOrDirection)
+
+    ### FACE BUTTON SHORTCUTS
+
+    if SCHEME=="XBX" or SCHEME=="NINT":
+        @commands.command(name='a')
+        async def a_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "a", strengthOrDirection)
+
+        @commands.command(name='b')
+        async def b_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "b", strengthOrDirection)
+
+        @commands.command(name='x')
+        async def x_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "x", strengthOrDirection)
+
+        @commands.command(name='y')
+        async def y_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "y", strengthOrDirection)
+
+        @commands.command(name='lsb')
+        async def lsb_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "lsb", strengthOrDirection)
+
+        @commands.command(name='rsb')
+        async def rsb_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "rsb", strengthOrDirection)
+
+    elif SCHEME=="PS":
+        @commands.command(name='x')
+        async def x_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "x", strengthOrDirection)
+
+        @commands.command(name='c')
+        async def c_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "c", strengthOrDirection)
+
+        @commands.command(name='t')
+        async def t_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "t", strengthOrDirection)
+
+        @commands.command(name='s')
+        async def s_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "s", strengthOrDirection)
+
+        @commands.command(name='l3')
+        async def lsbtn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "l3", strengthOrDirection)
+
+        @commands.command(name='r3')
+        async def rsbtn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "r3", strengthOrDirection)
+
+    if SCHEME=="XBX" or SCHEME=="PS":
+        @commands.command(name='start')
+        async def start_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "start", strengthOrDirection)
+    elif SCHEME=="NINT":
+        @commands.command(name='+')
+        async def start_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "+", strengthOrDirection)
+
+    if SCHEME=="XBX":
+        @commands.command(name='back')
+        async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "back", strengthOrDirection)
+    elif SCHEME=="PS":
+        @commands.command(name='select')
+        async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "select", strengthOrDirection)    
+    elif SCHEME=="NINT":
+        @commands.command(name='-')
+        async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "-", strengthOrDirection)
+
+    if SCHEME=="XBX":
+        @commands.command(name='lb')
+        async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "lb", strengthOrDirection)
+        @commands.command(name='rb')
+        async def r1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "rb", strengthOrDirection)
+
+        @commands.command(name='lt')
+        async def l2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "lt", strengthOrDirection)
+        @commands.command(name='rt')
+        async def r2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "rt", strengthOrDirection)
+    elif SCHEME=="PS":
+        @commands.command(name='l1')
+        async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "l1", strengthOrDirection)
+        @commands.command(name='r1')
+        async def r1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "r1", strengthOrDirection)
+
+        @commands.command(name='l2')
+        async def l2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "l2", strengthOrDirection)
+        @commands.command(name='r2')
+        async def r2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "r2", strengthOrDirection) 
+    elif SCHEME=="NINT":
+        @commands.command(name='l')
+        async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "l", strengthOrDirection)
+        @commands.command(name='r')
+        async def r1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "r", strengthOrDirection)
+
+        @commands.command(name='zl')
+        async def l2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "zl", strengthOrDirection)
+        @commands.command(name='zr')
+        async def r2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
+            await self.input_branches(ctx, "tap", "zr", strengthOrDirection) 
+
+    ### MISC COMMANDS
 
     @commands.command(name='last')
     async def last_command(self, ctx):
