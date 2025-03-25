@@ -25,7 +25,9 @@ A simple Python script that leverages on twitchio and vgamepad. For Windows.
 ### Twitch OAUTH Token
 * __DO NOT SHARE YOUR TOKEN WITH ANYONE__ as it provides access to your account. Treat it like a password.
 * __DO NOT SHARE COPIES OF THE SCRIPT__ that could contain your oauth token and channel name. Instead, direct them here.
-* Obtain your Twitch OAUTH token for Twitchpad to send / receive chat messages from Twitch API. The Token will allow Twitchpad to authenticate as you. It is private to you and Twitch. https://twitchapps.com/tmi/
+* Obtain your Twitch OAUTH token for Twitchpad to send / receive chat messages from Twitch API. The Token will allow Twitchpad to authenticate as you. It is private to you and Twitch. https://twitchtokengenerator.com/
+* Select Bot Chat Token and authorize it with your Twitch account. Complete the CAPTCHA challenge(s).
+* Copy the "ACCESS TOKEN" value.
 * Keep the token somewhere safe!
 
 ### ViGEmBus Setup
@@ -41,12 +43,13 @@ A simple Python script that leverages on twitchio and vgamepad. For Windows.
 ## Starting it up!
 
 1. Make sure that you've filled in the necessary info in `config.ini`.
-2. Make sure there's no other controllers connected if you want Twitchpad to be the Player 1 gamepad.
-3. Double-click `Twitchpad.exe`. After a successful authentication to Twitch, it will inform you its connected and a message will be printed to your Chat. It will immediately begin reading inputs from Chat, so be careful! If it fails to authenticate or to read the data from `config.ini`, double-check that your channel name, OAUTH token and Scheme are correctly entered.
-4. It's advisable to have the game in the foreground and focused i.e. you've clicked on it after starting Twitchpad.
-5. If you've accidentally pressed on the Command Prompt window and see a static rectangle cursor, this means that you have interrupted the script. You can press the title bar of the Command Prompt or press Enter to let it continue.
-6. The Command Prompt logs inputs from Twitch chat and will also display error messages, which can be handy for bug reports!
-7. If things get out of control, immediately close Twitchpad. Have fun! :>
+2. Make sure there's no other controllers connected if you want Twitchpad to be the Player 1 gamepad. You can share your own controller with Twitchpad inputs as one singular virtual controller.
+3. Double-click `Twitchpad.exe`. After a successful authentication to Twitch, it will inform you its connected and a message will be printed to your Chat. If it fails to authenticate or to read the data from `config.ini`, double-check that your channel name, OAUTH token and Scheme are correctly entered.
+4. You can use the command `!tpstart` to begin receiving instant inputs from Twitch chat, or use `!tpvote` to use a looping voting system where Twitch chat can vote what the next input is. At any time, you can stop either mode with `!tpstop`.
+5. It's advisable to have the game in the foreground and focused i.e. you've clicked on it after starting Twitchpad.
+6. If you've accidentally pressed on the Command Prompt window and see a static rectangle cursor, this means that you have interrupted the script. You can press the title bar of the Command Prompt or press Enter to let it continue.
+7. The Command Prompt logs inputs from Twitch chat and will also display error messages, which can be handy for bug reports!
+8. If things get out of control, immediately close Twitchpad. Have fun! :>
 
 ## Keeping things updated...
 

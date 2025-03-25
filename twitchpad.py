@@ -2,12 +2,16 @@ import asyncio
 from twitchio.ext import commands
 import vgamepad as vgp
 import time
-from twitchpad_helper import TwitchpadConfig, read_config_ini
+import random
+from twitchpad_helper import TwitchpadConfig, is_int, is_float, read_config_ini
 from typing import Optional, Union
 
-TWITCH_CHANNEL = ''
-TWITCH_TOKEN = ''
-SCHEME = 'XBX'
+current_config = read_config_ini()
+
+TWITCH_CHANNEL = current_config.channel_name
+TWITCH_TOKEN = current_config.oauth_token
+SCHEME = current_config.scheme
+CONFIGURED_VOTING_DURATION = current_config.default_voting_duration
 
 # Initialize the virtual gamepad
 gamepad = vgp.VX360Gamepad()
@@ -89,20 +93,6 @@ TRIGGER_MAP = {
     "r2": "R2",
     'zr': "ZR"
 }
-
-def is_int(num):
-    try:
-        int(num)
-        return True
-    except ValueError:
-        return False
-
-def is_float(num):
-    try:
-        float(num)
-        return True
-    except ValueError:
-        return False
 
 def limit_trig_value(num):
     if num < 0:
@@ -263,7 +253,6 @@ def get_button_to_key_mapping(button):
             if button == value:
                 return key
 
-
 def map_joystick_to_text(joystick):
     return STICK_MAP[joystick]
 
@@ -298,13 +287,21 @@ def determine_duration(duration, duration_map):
 
     return duration, duration_text
 
+def get_scheme():
+    global SCHEME
+
+    return SCHEME
+
 # Define a Twitch Bot
 class Bot(commands.Bot):
-    def __init__(self):
+    def __init__(self, scheme):
+
         super().__init__(token=TWITCH_TOKEN, prefix='!', initial_channels=[TWITCH_CHANNEL])
+        
+        self.scheme = scheme
 
         # Map commands to buttons
-        if SCHEME == "XBX":
+        if self.scheme == "XBX":
             self.command_map = {
                 'a': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
                 'b': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -322,7 +319,7 @@ class Bot(commands.Bot):
                 'rb': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
             }
 
-        elif SCHEME == "PS":
+        elif self.scheme == "PS":
             self.command_map = {
                 'x': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
                 'c': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -340,7 +337,7 @@ class Bot(commands.Bot):
                 'r1': vgp.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_SHOULDER
             }
 
-        elif SCHEME == "NINT":
+        elif self.scheme == "NINT":
             self.command_map = {
                 'b': vgp.XUSB_BUTTON.XUSB_GAMEPAD_A,
                 'a': vgp.XUSB_BUTTON.XUSB_GAMEPAD_B,
@@ -372,11 +369,11 @@ class Bot(commands.Bot):
             'nw': [-0.7, 0.7]            
         }
 
-        if SCHEME == "XBX":
+        if self.scheme == "XBX":
             self.triggers_map = ['lt', 'rt']
-        elif SCHEME == "PS":
+        elif self.scheme == "PS":
             self.triggers_map = ['l2', 'r2']
-        elif SCHEME == "NINT":
+        elif self.scheme == "NINT":
             self.triggers_map = ['zl', 'zr']
 
         self.duration_map = {
@@ -407,8 +404,14 @@ class Bot(commands.Bot):
             '10': 1.0
         }
 
-        self.mod_commands_map = ['pause']
+        self.intro_message = [f"🎮✨ @{TWITCH_CHANNEL}, here are the commands available to you: !tpstart | !tpvote | !tpstop "]
+
         self.last_input = ""
+        self.mode = "STANDBY"
+        self.vote_timer = CONFIGURED_VOTING_DURATION
+        self.vote_count = {}
+        self.vote_lock = asyncio.Lock()
+        self.voters_already_voted = []
 
     def update_last_input(self, last_input):
         self.last_input = last_input
@@ -419,17 +422,58 @@ class Bot(commands.Bot):
         ctx = self.get_channel(TWITCH_CHANNEL)
         if ctx:
             await ctx.send(f"🎮✨ TWITCHPAD is now LIVE! Scheme: {SCHEME} | Use !twitchpad for a link to the commands! ✨")
+            await ctx.send(self.intro_message[0])
 
     async def event_message(self, message):
         # Ignore messages from the bot itself
         # if message.author.name.lower() == TWITCH_NICKNAME.lower():
         #     return
 
+        ctx = self.get_channel(TWITCH_CHANNEL)
+
         # Ensure the message has a valid author
         if message.author is None:
             return
+
+        if self.mode == "VOTING":
+
+            msg_content = message.content.lstrip("!")
+            msg_command = message.content.lstrip("!").lower().split(" ")[0]
+            voter_name = message.author.name
+
+            if msg_command == "tpstop" and message.author.name == TWITCH_CHANNEL:
+                await self.handle_commands(message)
+            else:
+                try:
+                    if msg_command in self.command_map or msg_command in self.joysticks_map or msg_command in self.triggers_map or msg_command in self.duration_map:
+                        if voter_name not in self.voters_already_voted:
+                            if msg_content in self.vote_count:
+                                # Check if the author has already voted
+                                if voter_name not in self.vote_count[msg_content]['voters']:
+                                    # Add the author to the list and increase the vote count
+                                    self.vote_count[msg_content]['voters'].append(voter_name)
+                                    self.vote_count[msg_content]['count'] += 1
+                                    self.voters_already_voted.append(voter_name)
+                            else:
+                                # If the command hasn't been voted for yet, initialize with the first author and a count of 1
+                                self.vote_count[msg_content] = {'voters': [voter_name], 'count': 1, 'message': message}
+                                self.voters_already_voted.append(voter_name)
+                        else:
+                            if ctx:
+                                chat_output = f"@{voter_name} you already voted you silly goof!"
+                                await ctx.send(f"🎮✨ {chat_output} ✨")
+                    elif msg_command == "twitchpad":
+                        await self.handle_commands(messaage)
+                    else:
+                        if ctx:
+                            chat_output = f"@{voter_name} command doesn't exist or is not valid for voting!"
+                            await ctx.send(f"🎮✨ {chat_output} ✨")
+
+                except asyncio.TimeoutError:
+                    pass  # No message received, continue loop
         
-        await self.handle_commands(message)
+        elif self.mode == "INSTANT" or (message.content.startswith(("!tpstart", "!tpvote", "!tpstop")) and message.author.name == TWITCH_CHANNEL):
+            await self.handle_commands(message)
 
     async def translate_command_to_button(self, ctx, command, duration):
         if command in self.command_map:
@@ -462,7 +506,7 @@ class Bot(commands.Bot):
             move_stick_with_update(ctx, gamepad, joystick, x_value, y_value, duration)
             self.update_last_input(chat_output)
         else:
-            await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a compass direction (n,ne,e,se,s,sw,w,nw)! ✨")
+            await ctx.send(f"🎮✨ @{ctx.author.name}, please provide a compass direction (n,ne,e,se,s,sw,w,nw)! ✨")
 
     async def translate_command_to_trig(self, ctx, trigger, trig_value, duration):
         if trig_value is None:
@@ -482,7 +526,7 @@ class Bot(commands.Bot):
             push_trig_with_update(ctx, gamepad, trigger, trig_value, duration)
             self.update_last_input(chat_output)
         else:
-            await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name}, please provide a valid number between 1 to 10 for trigger strength! ✨")       
+            await ctx.send(f"🎮✨ @{ctx.author.name}, please provide a valid number between 1 to 10 for trigger strength! ✨")       
 
     async def input_branches(self, ctx, duration, pad_input, strengthOrDirection):
         pad_input = pad_input.lower()
@@ -490,10 +534,98 @@ class Bot(commands.Bot):
         if pad_input in self.command_map:
             await self.translate_command_to_button(ctx, pad_input, duration)
         elif pad_input in self.joysticks_map:
-            strengthOrDirection = strengthOrDirection.lower()
+            if strengthOrDirection:
+                strengthOrDirection = strengthOrDirection.lower()
             await self.translate_command_to_joystick(ctx, pad_input, strengthOrDirection, duration)
         elif pad_input in self.triggers_map:
             await self.translate_command_to_trig(ctx, pad_input, strengthOrDirection, duration)
+
+    async def run_vote_timer(self, ctx):
+        self.mode = "VOTING"
+
+        vote_looping_counter = 1
+
+        while self.mode == "VOTING":
+            chat_output = f"@{ctx.author.name}, #{vote_looping_counter} vote started for {self.vote_timer} seconds!"
+            await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+
+            for timing in range(0, self.vote_timer):
+                if self.mode != "VOTING":
+                    self.vote_count = {}
+                    self.voters_already_voted = []
+                    self.vote_timer = CONFIGURED_VOTING_DURATION
+                    break
+
+                else:
+                    if timing % 5 == 0: 
+                        vote_count_string = ""
+
+                        if self.vote_count:
+                            sorted_vote_count = sorted(self.vote_count.items(), key=lambda item: item[1]['count'])
+
+                            for command, value in sorted_vote_count[:3]:
+                                vote_count_string += f"!{command}: {value['count']} vote(s) | "
+
+                            chat_output = f"Voting seconds left: {self.vote_timer - timing} | {vote_count_string.strip()}"
+                            await ctx.send(f"🎮⏲️ {chat_output}")
+                        else:
+                            chat_output = f"Voting seconds left: {self.vote_timer - timing} |"
+                            await ctx.send(f"🎮⏲️ {chat_output}")                    
+
+                    await asyncio.sleep(1)
+
+            voted_item = None
+            voted_item_voters = None
+            vote_count_value = 0
+            voted_item_msg = None
+            voter_string_count = 0
+
+            if self.vote_count:
+                # Find the maximum vote count
+                max_count = max(item['count'] for item in self.vote_count.values())
+
+                # Find all items with max count
+                max_items = [item for item in self.vote_count if self.vote_count[item]['count'] == max_count]
+
+                # Randomly choose an item if count is the same
+                voted_item = random.choice(max_items)
+                vote_count_value = self.vote_count[voted_item]['count']  # Get the vote count of the item
+                voted_item_msg = self.vote_count[voted_item]['message'] # Get the full command voted for
+
+                for voter in self.vote_count[voted_item]['voters']:
+                    if voted_item_voters:
+                        if voter_string_count == 2:
+                            if len(self.vote_count[voted_item]['voters']) > 2:
+                                voted_item_voters += f" @{voter}"
+                            elif len(self.vote_count[voted_item]['voters']) == 2:
+                                voted_item_voters += f" & @{voter}"
+                                break
+                        elif voter_string_count == 3:
+                            voted_item_voters += f" & @{voter}"
+                            break
+                    else:
+                        voted_item_voters = f"@{voter}"
+                        voter_string_count = 1
+
+            if voted_item and vote_count_value:
+                chat_output = f"Voting ended! Chat voted for !{voted_item} with a total of {vote_count_value} vote(s) as voted by {voted_item_voters}!"
+                await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+
+                voted_command = f"!{voted_item}"
+                await self.handle_commands(voted_item_msg)
+            else:
+                chat_output = f"Voting ended! Chat didn't vote for any commands."
+                await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")            
+
+            self.vote_count = {}
+            self.voters_already_voted = []
+            self.vote_timer = CONFIGURED_VOTING_DURATION
+            vote_looping_counter += 1
+
+            if self.mode == "VOTING":
+                chat_output = f"Next vote starting in 10..."
+                await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨") 
+                await asyncio.sleep(10)
 
     @commands.command(name='tap')
     async def tap_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]): 
@@ -543,6 +675,16 @@ class Bot(commands.Bot):
     async def stop_command(self, ctx, pad_input: str, strengthOrDirection: Optional[str]):
         await self.input_branches(ctx, "stop", pad_input, strengthOrDirection)
 
+    ### JOYSTICK SHORTCUTS
+
+    @commands.command(name='ls')
+    async def ls_command(self, ctx, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "ls", strengthOrDirection)
+
+    @commands.command(name='rs')
+    async def rs_command(self, ctx, strengthOrDirection: Optional[str]):
+        await self.input_branches(ctx, "tap", "rs", strengthOrDirection)
+
     ### DIRECTIONAL SHORTCUTS
 
     @commands.command(name='up')
@@ -563,7 +705,7 @@ class Bot(commands.Bot):
 
     ### FACE BUTTON SHORTCUTS
 
-    if SCHEME=="XBX" or SCHEME=="NINT":
+    if get_scheme()=="XBX" or get_scheme()=="NINT":
         @commands.command(name='a')
         async def a_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "a", strengthOrDirection)
@@ -588,7 +730,7 @@ class Bot(commands.Bot):
         async def rsb_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "rsb", strengthOrDirection)
 
-    elif SCHEME=="PS":
+    elif get_scheme()=="PS":
         @commands.command(name='x')
         async def x_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "x", strengthOrDirection)
@@ -613,29 +755,29 @@ class Bot(commands.Bot):
         async def rsbtn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "r3", strengthOrDirection)
 
-    if SCHEME=="XBX" or SCHEME=="PS":
+    if get_scheme()=="XBX" or get_scheme()=="PS":
         @commands.command(name='start')
         async def start_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "start", strengthOrDirection)
-    elif SCHEME=="NINT":
+    elif get_scheme()=="NINT":
         @commands.command(name='+')
         async def start_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "+", strengthOrDirection)
 
-    if SCHEME=="XBX":
+    if get_scheme()=="XBX":
         @commands.command(name='back')
         async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "back", strengthOrDirection)
-    elif SCHEME=="PS":
+    elif get_scheme()=="PS":
         @commands.command(name='select')
         async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "select", strengthOrDirection)    
-    elif SCHEME=="NINT":
+    elif get_scheme()=="NINT":
         @commands.command(name='-')
         async def select_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "-", strengthOrDirection)
 
-    if SCHEME=="XBX":
+    if get_scheme()=="XBX":
         @commands.command(name='lb')
         async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "lb", strengthOrDirection)
@@ -649,7 +791,7 @@ class Bot(commands.Bot):
         @commands.command(name='rt')
         async def r2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "rt", strengthOrDirection)
-    elif SCHEME=="PS":
+    elif get_scheme()=="PS":
         @commands.command(name='l1')
         async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "l1", strengthOrDirection)
@@ -663,7 +805,7 @@ class Bot(commands.Bot):
         @commands.command(name='r2')
         async def r2_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "r2", strengthOrDirection) 
-    elif SCHEME=="NINT":
+    elif get_scheme()=="NINT":
         @commands.command(name='l')
         async def l1_btn_command(self, ctx, pad_input: Optional[str], strengthOrDirection: Optional[str]):
             await self.input_branches(ctx, "tap", "l", strengthOrDirection)
@@ -690,27 +832,53 @@ class Bot(commands.Bot):
 
     @commands.command(name='reset')
     async def stop_all_command(self, ctx):
-        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} has stopped and reset all inputs! ✨")
+        await ctx.send(f"🎮✨ @{ctx.author.name} has stopped and reset all inputs! ✨")
         stop_all_inputs(ctx, gamepad)
 
     @commands.command(name='lreset')
     async def stop_last_command(self, ctx):
         chat_output = f"@{ctx.author.name} resetted the input from the last command - {self.last_input}!"
-        await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨") 
+        await ctx.send(f"🎮✨ {chat_output} ✨") 
         stop_last_input(ctx, gamepad, self.last_input)
 
-    # async def event_command_error(self, ctx, error):
-    #     # Check if the error is related to an undefined command
-    #     if isinstance(error, commands.CommandNotFound):
-    #         await ctx.send(f"🎮✨ TWITCHPAD | {ctx.author.name} ❌ Unknown command: {ctx.content}. Please use a valid command! !twitchpad")
+    @commands.command(name='tpstart')
+    async def start_accepting_command(self, ctx):
+        self.mode = "INSTANT"
+        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} - Started Instant mode; chat inputs will start being accepted! ✨")
+
+    @commands.command(name='tpvote')
+    async def vote_command(self, ctx, vote_duration: Optional[str]):
+
+        if self.vote_lock.locked() and self.mode == "VOTING":  # Check if the lock is held
+            await ctx.send("A vote is already running, please wait until it finishes.")
+            return  # Exit if a vote is already running
+        else:
+            if ctx.author.name == TWITCH_CHANNEL:
+                if vote_duration:
+                    if is_int(vote_duration) and not is_float(vote_duration):
+                        self.vote_timer = int(vote_duration)
+
+                        if int(vote_duration) < 15:
+                            self.vote_timer = 15
+                            chat_output = f"Voting duration too short - adjusted to {self.vote_timer} seconds!"
+                            await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+                        if int(vote_duration) > 120:
+                            self.vote_timer = 120
+                            chat_output = f"Voting duration too long - adjusted to {self.vote_timer} seconds!"
+                            await ctx.send(f"🎮✨ TWITCHPAD | {chat_output} ✨")
+                    else:
+                        chat_output = f"Voting duration is not a valid value - defaulted to {self.vote_timer} seconds!"
+                        await ctx.send(f"🎮✨ {chat_output} ✨")                  
+
+                async with self.vote_lock:  # Acquire the lock to prevent concurrent commands
+                    await self.run_vote_timer(ctx)
+
+    @commands.command(name='tpstop')
+    async def stop_accepting_command(self, ctx):
+        self.mode = "STANDBY"
+        await ctx.send(f"🎮✨ TWITCHPAD | @{ctx.author.name} - Stopped; no chat inputs will be accepted and any voting is cancelled. ✨")
 
 # Run the bot
 if __name__ == '__main__':
-    current_config = read_config_ini()
-
-    TWITCH_CHANNEL = current_config.channel_name
-    TWITCH_TOKEN = current_config.oauth_token
-    SCHEME = current_config.scheme
-
-    bot = Bot()
+    bot = Bot(get_scheme())
     bot.run()

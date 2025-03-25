@@ -26,6 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 custom-config.ini
+twitchpad_updater.py
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
